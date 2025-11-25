@@ -1,10 +1,12 @@
-# Build Stage
-FROM maven:3.8.5-openjdk-17 AS build
+# Build stage (use Maven with Java 21 to match `pom.xml`)
+FROM maven:3.9.4-eclipse-temurin-21 AS build
+WORKDIR /workspace
 COPY . .
-RUN mvn clean package -DskipTests
+RUN mvn -B clean package -DskipTests
 
-# Run Stage
-FROM openjdk:17.0.1-jdk-slim
-COPY --from=build /target/*.jar app.jar
+# Run stage (Java 21 runtime)
+FROM eclipse-temurin:21-jre AS runtime
+WORKDIR /app
+COPY --from=build /workspace/target/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
